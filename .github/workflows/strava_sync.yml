@@ -1,0 +1,34 @@
+# .github/workflows/strava_sync.yml 경로에 저장하세요.
+name: Strava to Google Sheets Sync
+
+on:
+  schedule:
+    # 한국 시간 기준 매일 오전 8시, 오후 8시에 자동 실행 (UTC 23:00, 11:00)
+    - cron: '0 23,11 * * *'
+  workflow_dispatch: # 필요할 때 수동으로 즉시 실행하는 버튼 생성
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: |
+          pip install requests gspread google-auth pandas
+
+      - name: Run sync script
+        env:
+          STRAVA_CLIENT_ID: ${{ secrets.STRAVA_CLIENT_ID }}
+          STRAVA_CLIENT_SECRET: ${{ secrets.STRAVA_CLIENT_SECRET }}
+          STRAVA_REFRESH_TOKEN: ${{ secrets.STRAVA_REFRESH_TOKEN }}
+          GOOGLE_SERVICE_ACCOUNT: ${{ secrets.GOOGLE_SERVICE_ACCOUNT }}
+          SPREADSHEET_NAME: "StravaSync"
+        run: python strava_sync_final.py
